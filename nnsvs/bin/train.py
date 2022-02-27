@@ -174,6 +174,7 @@ def train_loop(config, device, model, optimizer, lr_scheduler, data_loaders):
                 # Sort by lengths . This is needed for pytorch's PackedSequence
                 sorted_lengths, indices = torch.sort(lengths, dim=0, descending=True)
                 x, y = x[indices].to(device), y[indices].to(device)
+                sorted_lengths = sorted_lengths.to(device)
 
                 optimizer.zero_grad()
 
