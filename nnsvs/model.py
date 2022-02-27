@@ -1,4 +1,6 @@
 import torch
+from nnsvs.attentions import Encoder as SelfAttentionEncoder
+from nnsvs.attentions import sequence_mask
 from nnsvs.base import BaseModel, PredictionType
 from nnsvs.dsp import TrTimeInvFIRFilter
 from nnsvs.mdn import MDNLayer, mdn_get_most_probable_sigma_and_mu
@@ -312,6 +314,43 @@ class Conv1dResnetMDN(BaseModel):
         log_pi, log_sigma, mu = self.forward(x, lengths)
         sigma, mu = mdn_get_most_probable_sigma_and_mu(log_pi, log_sigma, mu)
         return mu, sigma
+
+
+class NonARSelfAttDecoder(BaseModel):
+    def __init__(
+        self,
+        in_dim=419,
+        out_dim=199,
+        hidden_channels=256,
+        filter_channels=256,
+        n_heads=2,
+        n_layers=2,
+        kernel_size=1,
+        p_dropout=0.0,
+        window_size=4,
+    ):
+        super().__init__()
+        self.fc1 = nn.Linear(in_dim, hidden_channels)
+        self.fc2 = nn.Linear(hidden_channels, out_dim)
+        self.encoder = SelfAttentionEncoder(
+            hidden_channels,
+            filter_channels,
+            n_heads,
+            n_layers,
+            kernel_size,
+            p_dropout,
+            window_size,
+        )
+
+    def is_autoregressive(self):
+        return False
+
+    def forward(self, inputs, in_lens):
+        x = self.fc1(inputs)
+        x = x.transpose(1, 2)  # (B, C, T)
+        x_mask = torch.unsqueeze(sequence_mask(in_lens, x.size(2)), 1).to(x.dtype)
+        encoder_outs = self.encoder(x, x_mask)
+        return self.fc2(encoder_outs.transpose(1, 2))
 
 
 class NoAttTacotron2(BaseModel):
