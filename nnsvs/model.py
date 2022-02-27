@@ -1,10 +1,11 @@
-# coding: utf-8
-
 import torch
 from nnsvs.base import BaseModel, PredictionType
 from nnsvs.dsp import TrTimeInvFIRFilter
 from nnsvs.mdn import MDNLayer, mdn_get_most_probable_sigma_and_mu
 from nnsvs.multistream import split_streams
+from nnsvs.tacotron.decoder import NoAttDecoder as NoAttTacotron2Decoder
+from nnsvs.tacotron.encoder import Encoder as Tacotron2Encoder
+from nnsvs.tacotron.postnet import Postnet as Tacotron2Postnet
 from torch import nn
 from torch.nn.utils import weight_norm
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
@@ -311,3 +312,83 @@ class Conv1dResnetMDN(BaseModel):
         log_pi, log_sigma, mu = self.forward(x, lengths)
         sigma, mu = mdn_get_most_probable_sigma_and_mu(log_pi, log_sigma, mu)
         return mu, sigma
+
+
+class NoAttTacotron2(BaseModel):
+    """Tacotron2 decoder without attention"""
+
+    def __init__(
+        self,
+        in_dim=512,
+        out_dim=80,
+        encoder_hidden_dim=512,
+        encoder_conv_layers=3,
+        encoder_conv_channels=512,
+        encoder_conv_kernel_size=5,
+        encoder_dropout=0.5,
+        decoder_layers=2,
+        decoder_hidden_dim=1024,
+        decoder_prenet_layers=2,
+        decoder_prenet_hidden_dim=256,
+        decoder_prenet_dropout=0.5,
+        decoder_zoneout=0.1,
+        postnet_layers=5,
+        postnet_channels=512,
+        postnet_kernel_size=5,
+        postnet_dropout=0.5,
+        reduction_factor=1,
+    ):
+        super().__init__()
+        self.encoder = Tacotron2Encoder(
+            in_dim,
+            encoder_hidden_dim,
+            encoder_conv_layers,
+            encoder_conv_channels,
+            encoder_conv_kernel_size,
+            encoder_dropout,
+        )
+        self.decoder = NoAttTacotron2Decoder(
+            encoder_hidden_dim,
+            out_dim,
+            decoder_layers,
+            decoder_hidden_dim,
+            decoder_prenet_layers,
+            decoder_prenet_hidden_dim,
+            decoder_prenet_dropout,
+            decoder_zoneout,
+            reduction_factor,
+        )
+        self.postnet = Tacotron2Postnet(
+            out_dim,
+            postnet_layers,
+            postnet_channels,
+            postnet_kernel_size,
+            postnet_dropout,
+        )
+
+    def is_autoregressive(self):
+        return True
+
+    def forward(self, inputs, in_lens, decoder_targets):
+        encoder_outs = self.encoder(inputs, in_lens)
+
+        outs = self.decoder(encoder_outs, in_lens, decoder_targets)
+
+        outs_fine = outs + self.postnet(outs)
+
+        # (B, C, T) -> (B, T, C)
+        outs = outs.transpose(2, 1)
+        outs_fine = outs_fine.transpose(2, 1)
+
+        return outs_fine
+
+    def inference(self, seq, lengths=None):
+        """Inference step
+
+        Args:
+            seq (torch.Tensor): input sequence
+
+        Returns:
+            torch.Tensor: the output
+        """
+        return self.forward(seq, lengths, None)
