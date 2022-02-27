@@ -72,7 +72,10 @@ class Encoder(nn.Module):
         out = self.convs(seqs.transpose(1, 2)).transpose(1, 2)
 
         # Bi-LSTM の計算
-        out = pack_padded_sequence(out, in_lens.to("cpu"), batch_first=True)
+        if not isinstance(in_lens, list):
+            in_lens = in_lens.to("cpu")
+
+        out = pack_padded_sequence(out, in_lens, batch_first=True)
         out, _ = self.blstm(out)
         out, _ = pad_packed_sequence(out, batch_first=True)
 
