@@ -192,8 +192,10 @@ def train_loop(config, device, model, optimizer, lr_scheduler, data_loaders):
                     loss = mdn_loss(pi, sigma, mu, y, reduce=False)
                     loss = loss.masked_select(mask).mean()
                 else:
-                    y_hat = model(x, sorted_lengths)
-
+                    if model.is_autoregressive():
+                        y_hat = model(x, sorted_lengths, y)
+                    else:
+                        y_hat = model(x, sorted_lengths)
                     # Compute loss
                     mask = make_non_pad_mask(sorted_lengths).unsqueeze(-1).to(device)
 

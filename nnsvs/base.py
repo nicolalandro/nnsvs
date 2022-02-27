@@ -46,3 +46,6 @@ class BaseModel(nn.Module):
 
     def prediction_type(self):
         return PredictionType.DETERMINISTIC
+
+    def is_autoregressive(self):
+        return False
