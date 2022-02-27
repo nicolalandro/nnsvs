@@ -4,9 +4,6 @@
 #  Copyright 2019 Nagoya University (Tomoki Hayashi)
 #  Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
 
-
-from json import decoder
-
 import torch
 import torch.nn.functional as F
 from torch import nn

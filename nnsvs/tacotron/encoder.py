@@ -1,3 +1,4 @@
+# The code was adapted from ttslearn https://github.com/r9y9/ttslearn
 # Acknowledgement: some of the code was adapted from ESPnet
 #  Copyright 2019 Nagoya University (Tomoki Hayashi)
 #  Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
