@@ -167,6 +167,17 @@ def train_loop(config, device, model, optimizer, lr_scheduler, data_loaders):
         config.model.stream_weights, config.model.stream_sizes
     ).to(device)
 
+    prediction_type = (
+        model.module.prediction_type()
+        if isinstance(model, nn.DataParallel)
+        else model.prediction_type()
+    )
+    is_autoregressive = (
+        model.module.is_autoregressive()
+        if isinstance(model, nn.DataParallel)
+        else model.is_autoregressive()
+    )
+
     best_loss = 10000000
     for epoch in tqdm(range(1, config.train.nepochs + 1)):
         for phase in data_loaders.keys():
@@ -183,10 +194,13 @@ def train_loop(config, device, model, optimizer, lr_scheduler, data_loaders):
 
                 # Apply preprocess if required (e.g., FIR filter for shallow AR)
                 # defaults to no-op
-                y = model.preprocess_target(y)
+                if isinstance(model, nn.DataParallel):
+                    y = model.module.preprocess_target(y)
+                else:
+                    y = model.preprocess_target(y)
 
                 # Run forwaard
-                if model.prediction_type() == PredictionType.PROBABILISTIC:
+                if prediction_type == PredictionType.PROBABILISTIC:
                     pi, sigma, mu = model(x, sorted_lengths)
 
                     # (B, max(T)) or (B, max(T), D_out)
@@ -196,7 +210,7 @@ def train_loop(config, device, model, optimizer, lr_scheduler, data_loaders):
                     loss = mdn_loss(pi, sigma, mu, y, reduce=False)
                     loss = loss.masked_select(mask).mean()
                 else:
-                    if model.is_autoregressive():
+                    if is_autoregressive:
                         y_hat = model(x, sorted_lengths, y)
                     else:
                         y_hat = model(x, sorted_lengths)
@@ -268,7 +282,7 @@ def my_app(config: DictConfig) -> None:
     # Model
     model = hydra.utils.instantiate(config.model.netG).to(device)
 
-    if "data_parallel" in config and config.data_parallel:
+    if "data_parallel" in config.train and config.train.data_parallel:
         model = nn.DataParallel(model)
 
     # Optimizer
