@@ -350,6 +350,8 @@ class NonARSelfAttDecoder(BaseModel):
         return False
 
     def forward(self, inputs, in_lens):
+        if isinstance(in_lens, list):
+            in_lens = torch.tensor(in_lens).long().to(inputs.device)
         x = self.fc1(inputs)
         x = x.transpose(1, 2)  # (B, C, T)
         x_mask = torch.unsqueeze(sequence_mask(in_lens, x.size(2)), 1).to(x.dtype)
