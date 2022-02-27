@@ -115,6 +115,9 @@ def get_data_loaders(config):
 
 
 def save_checkpoint(config, model, optimizer, lr_scheduler, epoch):
+    if isinstance(model, nn.DataParallel):
+        model = model.module
+
     out_dir = to_absolute_path(config.train.out_dir)
     os.makedirs(out_dir, exist_ok=True)
     checkpoint_path = join(out_dir, "checkpoint_epoch{:04d}.pth".format(epoch))
@@ -264,6 +267,9 @@ def my_app(config: DictConfig) -> None:
 
     # Model
     model = hydra.utils.instantiate(config.model.netG).to(device)
+
+    if "data_parallel" in config and config.data_parallel:
+        model = nn.DataParallel(model)
 
     # Optimizer
     optimizer_class = getattr(optim, config.train.optim.optimizer.name)
