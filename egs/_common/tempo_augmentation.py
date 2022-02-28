@@ -96,8 +96,25 @@ def process_lab(lab_files, out_dir, tempo, random_tempo=False):
                             match.group(0), f"{pre}{new_num}{post}", 1
                         )
 
-            # Length in sec: d7, e7, f7
-            for pre, post in [("&", ";"), ("@", "#"), ("\\+", "%")]:
+            # Length in sec or msec: d7, e7, f7
+            # e12/13, e20/21, e31/32, e37/e38, e43/44, e51/52
+            for pre, post in [
+                ("&", ";"),
+                ("@", "#"),
+                ("\\+", "%"),
+                ("\\|", "\\["),
+                ("\\[", "&"),
+                ("_", ";"),
+                (";", "\\$"),
+                ("~", "="),
+                ("=", "@"),
+                ("#", "\\|"),
+                ("\\|", "\\|"),
+                ("\\+", "\\["),
+                ("\\[", ";"),
+                ("\\^", "@"),
+                ("@", "\\["),
+            ]:
                 match = re.search(f"{pre}([0-9]+){post}", context)
                 # if not "xx"
                 if match is not None:
