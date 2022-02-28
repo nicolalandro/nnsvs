@@ -2,6 +2,7 @@
 """
 import argparse
 import os
+import random
 import re
 import sys
 from glob import glob
@@ -27,6 +28,9 @@ def get_parser():
     parser.add_argument("out_dir", type=str, help="Output directory")
     parser.add_argument("tempo", default=1.0, type=float, help="tempo")
     parser.add_argument(
+        "--random_tempo", action="store_true", help="random tempo augmentation"
+    )
+    parser.add_argument(
         "--filter_augmented_files",
         action="store_true",
         help="filter out already augmented files",
@@ -34,8 +38,15 @@ def get_parser():
     return parser
 
 
-def process_wav(wav_files, out_dir, tempo):
+def process_wav(wav_files, out_dir, tempo, random_tempo=False):
+    # NOTE: must be careful about random seed
+    if random_tempo:
+        random.seed(int(tempo))
+
     for wav_file in tqdm(wav_files):
+        if random_tempo:
+            tempo = round(random.uniform(0.9, 1.1), 2)
+
         wav, sr = librosa.load(wav_file, sr=None)
         x = torch.from_numpy(wav).view(1, -1)
 
@@ -52,8 +63,15 @@ def process_wav(wav_files, out_dir, tempo):
         sf.write(out_file, y.numpy(), sr)
 
 
-def process_lab(lab_files, out_dir, tempo):
+def process_lab(lab_files, out_dir, tempo, random_tempo=False):
+    # NOTE: must be careful about random seed
+    if random_tempo:
+        random.seed(int(tempo))
+
     for lab_file in tqdm(lab_files):
+        if random_tempo:
+            tempo = round(random.uniform(0.9, 1.1), 2)
+
         labels = hts.load(lab_file)
         name = basename(lab_file)
         new_s = []
@@ -120,6 +138,6 @@ if __name__ == "__main__":
         if args.filter_augmented_files:
             lab_files = list(filter(lambda x: not x.endswith("aug.lab"), lab_files))
         assert len(lab_files) > 0
-        process_lab(lab_files, out_dir, args.tempo)
+        process_lab(lab_files, out_dir, args.tempo, args.random_tempo)
     else:
-        process_wav(wav_files, out_dir, args.tempo)
+        process_wav(wav_files, out_dir, args.tempo, args.random_tempo)
