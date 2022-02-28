@@ -2,6 +2,7 @@
 """
 import argparse
 import os
+import re
 import sys
 from glob import glob
 from os.path import basename, join
@@ -57,12 +58,48 @@ def process_lab(lab_files, out_dir, tempo):
         name = basename(lab_file)
         new_s = []
         new_e = []
-        for s, e, _ in labels:
+        new_contexts = []
+        for s, e, context in labels:
             new_s.append(int(round(s / tempo / 50000) * 50000))
             new_e.append(int(round(e / tempo / 50000) * 50000))
 
+            # Tempo: d5, e5, f5
+            for pre, post in [("%", "\\|"), ("~", "!"), ("\\$", "\\$")]:
+                match = re.search(f"{pre}([0-9]+){post}", context)
+                # if not "xx"
+                if match is not None:
+                    assert len(match.groups()) == 1
+                    num = match.group(0)[1:-1]
+                    if len(num) > 0:
+                        pre = pre.replace("\\", "")
+                        post = post.replace("\\", "")
+                        new_num = int(round(float(num) * tempo))
+                        context = context.replace(
+                            match.group(0), f"{pre}{new_num}{post}", 1
+                        )
+
+            # Length in sec: d7, e7, f7
+            for pre, post in [("&", ";"), ("@", "#"), ("\\+", "%")]:
+                match = re.search(f"{pre}([0-9]+){post}", context)
+                # if not "xx"
+                if match is not None:
+                    assert len(match.groups()) == 1
+                    num = match.group(0)[1:-1]
+                    if len(num) > 0:
+                        # NOTE: ensure > 0
+                        pre = pre.replace("\\", "")
+                        post = post.replace("\\", "")
+                        new_num = max(int(round(float(num) / tempo)), 1)
+                        context = context.replace(
+                            match.group(0), f"{pre}{new_num}{post}", 1
+                        )
+
+            new_contexts.append(context)
+
         labels.start_times = new_s
         labels.end_times = new_e
+        labels.contexts = new_contexts
+
         postfix = str(tempo).replace("-", "minus") + "tempo_aug"
         dst_lab_file = join(out_dir, name.replace(".lab", f"_{postfix}.lab"))
         with open(dst_lab_file, "w") as of:
