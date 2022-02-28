@@ -65,7 +65,7 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
     ln -sfn $PWD/$kiritan_singing/kiritan_singing_extra/acoustic data/acoustic
 
     # Pitch data augmentation
-    for cent in -200 -100 100 200
+    for cent in -100 100
     do
         # timelag
         for typ in label_phone_align label_phone_score
@@ -84,6 +84,29 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
         do
             python $NNSVS_COMMON_ROOT/../pitch_augmentation.py data/acoustic/$typ data/acoustic/$typ \
                 $cent --filter_augmented_files
+        done
+    done
+
+    # Tempo data augmentation
+    for tempo in 0.9 1.1
+    do
+        # timelag
+        for typ in label_phone_align label_phone_score
+        do
+            python $NNSVS_COMMON_ROOT/../tempo_augmentation.py data/timelag/$typ data/timelag/$typ \
+                $tempo --filter_augmented_files
+        done
+        # duration
+        for typ in label_phone_align
+        do
+            python $NNSVS_COMMON_ROOT/../tempo_augmentation.py data/duration/$typ data/duration/$typ \
+                $tempo --filter_augmented_files
+        done
+        # acoustic
+        for typ in wav label_phone_align label_phone_score
+        do
+            python $NNSVS_COMMON_ROOT/../tempo_augmentation.py data/acoustic/$typ data/acoustic/$typ \
+                $tempo --filter_augmented_files
         done
     done
 

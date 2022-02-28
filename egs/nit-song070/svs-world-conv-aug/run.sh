@@ -61,7 +61,7 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
     python local/data_prep.py $db_root $out_dir --gain-normalize
 
     # Pitch data augmentation
-    for cent in -200 -100 100 200
+    for cent in -100 100
     do
         # timelag
         for typ in label_phone_align label_phone_score
@@ -80,6 +80,29 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
         do
             python $NNSVS_COMMON_ROOT/../pitch_augmentation.py $out_dir/acoustic/$typ $out_dir/acoustic/$typ \
                 $cent --filter_augmented_files
+        done
+    done
+
+    # Tempo data augmentation
+    for tempo in 0.9 1.1
+    do
+        # timelag
+        for typ in label_phone_align label_phone_score
+        do
+            python $NNSVS_COMMON_ROOT/../tempo_augmentation.py $out_dir/timelag/$typ $out_dir/timelag/$typ \
+                $tempo --filter_augmented_files
+        done
+        # duration
+        for typ in label_phone_align
+        do
+            python $NNSVS_COMMON_ROOT/../tempo_augmentation.py $out_dir/duration/$typ $out_dir/duration/$typ \
+                $tempo --filter_augmented_files
+        done
+        # acoustic
+        for typ in wav label_phone_align label_phone_score
+        do
+            python $NNSVS_COMMON_ROOT/../tempo_augmentation.py $out_dir/acoustic/$typ $out_dir/acoustic/$typ \
+                $tempo --filter_augmented_files
         done
     done
 
