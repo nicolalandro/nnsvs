@@ -41,7 +41,7 @@ def get_parser():
 def process_wav(wav_files, out_dir, tempo, random_tempo=False):
     # NOTE: must be careful about random seed
     if random_tempo:
-        random.seed(int(tempo*100))
+        random.seed(int(tempo * 100))
 
     for wav_file in tqdm(wav_files):
         if random_tempo:
@@ -66,7 +66,7 @@ def process_wav(wav_files, out_dir, tempo, random_tempo=False):
 def process_lab(lab_files, out_dir, tempo, random_tempo=False):
     # NOTE: must be careful about random seed
     if random_tempo:
-        random.seed(int(tempo*100))
+        random.seed(int(tempo * 100))
 
     for lab_file in tqdm(lab_files):
         if random_tempo:
