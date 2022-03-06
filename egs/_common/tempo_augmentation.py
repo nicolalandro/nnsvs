@@ -1,4 +1,4 @@
-"""Pitch augmentation for lab and wav files
+"""Tempo data augmentation for lab and wav files
 """
 import argparse
 import os
@@ -21,14 +21,14 @@ MIDI_MAPPING = {v: k for k, v in NOTE_MAPPING.items()}
 
 def get_parser():
     parser = argparse.ArgumentParser(
-        description="Data augmentation",
+        description="Tempo data augmentation",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("in_dir", type=str, help="Output directory")
+    parser.add_argument("in_dir", type=str, help="Input directory")
     parser.add_argument("out_dir", type=str, help="Output directory")
-    parser.add_argument("tempo", default=1.0, type=float, help="tempo")
+    parser.add_argument("tempo", default=1.0, type=float, help="Tempo")
     parser.add_argument(
-        "--random_tempo", action="store_true", help="random tempo augmentation"
+        "--random_tempo", action="store_true", help="Random tempo augmentation"
     )
     parser.add_argument(
         "--filter_augmented_files",
@@ -121,9 +121,9 @@ def process_lab(lab_files, out_dir, tempo, random_tempo=False):
                     assert len(match.groups()) == 1
                     num = match.group(0)[1:-1]
                     if len(num) > 0:
-                        # NOTE: ensure > 0
                         pre = pre.replace("\\", "")
                         post = post.replace("\\", "")
+                        # NOTE: ensure > 0
                         new_num = max(int(round(float(num) / tempo)), 1)
                         context = context.replace(
                             match.group(0), f"{pre}{new_num}{post}", 1

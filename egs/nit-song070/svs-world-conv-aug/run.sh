@@ -60,7 +60,7 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
     # 1) data/timelag 2) data/duration 3) data/acoustic
     python local/data_prep.py $db_root $out_dir --gain-normalize
 
-    # Pitch data augmentation
+    # Pitch data augmentation (in cent)
     for cent in -100 100
     do
         # timelag

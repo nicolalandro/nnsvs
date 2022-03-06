@@ -20,12 +20,14 @@ MIDI_MAPPING = {v: k for k, v in NOTE_MAPPING.items()}
 
 def get_parser():
     parser = argparse.ArgumentParser(
-        description="Data augmentation",
+        description="Pitch data augmentation",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("in_dir", type=str, help="Output directory")
+    parser.add_argument("in_dir", type=str, help="Input directory")
     parser.add_argument("out_dir", type=str, help="Output directory")
-    parser.add_argument("shift_in_cent", default=100, type=int, help="shift in cent")
+    parser.add_argument(
+        "shift_in_cent", default=100, type=int, help="Pitch shift in cent"
+    )
     parser.add_argument(
         "--filter_augmented_files",
         action="store_true",

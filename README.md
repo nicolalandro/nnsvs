@@ -18,20 +18,11 @@ Neural network-based singing voice synthesis library for research.
 
 ## Installation
 
-- Python 3.6 or newer
-- [nnmnkwii](https://github.com/r9y9/nnmnkwii): **development** version (master branch) is required
-- [pysinsy](https://github.com/r9y9/pysinsy) **development** version is required. Please have a look at the repostiory for installation.
-- Pytorch >= 1.x
-
-Note that packages listed above should be manually installed. After installing them, you can run:
-
 ```
 python setup.py develop
 ```
 
-to install the rest of dependencies.
-
-## Respository structure
+## Repository structure
 
 - Core library: [nnsvs/](nnsvs/)
 - Command line programs: [nnsvs/bin/](nnsvs/bin) and its configurations [nnsvs/bin/conf/](nnsvs/bin/conf/)
@@ -64,6 +55,7 @@ See [HISTORY.md](HISTORY.md)
 
 ## References
 
+- Y. Hono et al, "Sinsy: A Deep Neural Network-Based Singing Voice Synthesis System", Journal of IEEE/ACM TASLP https://arxiv.org/abs/2108.02776
 - Y. Hono et al, "Recent Development of the DNN-based Singing Voice Synthesis System — Sinsy," Proc. of APSIPA, 2017. ([PDF](http://www.apsipa.org/proceedings/2018/pdfs/0001003.pdf))
 - A fork of sinsy: https://github.com/r9y9/sinsy
 - Python wrapper for sinsy: https://github.com/r9y9/pysinsy
